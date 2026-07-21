@@ -27,7 +27,7 @@ export const About = () => {
 
           <h2 className="text-2xl font-bold text-white pt-6">Technologies Used</h2>
           <ul className="list-disc pl-5 space-y-2">
-            <li><strong>React (Vite)</strong>: For fast, component-based UI rendering.</li>
+            <li><strong>React (Vite)</strong>: For building the core application structure, managing the complex state machine of the educational animations, and routing between the different architectural phases of the Transformer.</li>
             <li><strong>Tailwind CSS (v4)</strong>: For comprehensive, modern utility styling and beautiful design aesthetics.</li>
             <li><strong>Framer Motion</strong>: Powering all the smooth, complex SVG and layout animations throughout the interactive modules.</li>
             <li><strong>Lucide React</strong>: Clean, consistent iconography.</li>
