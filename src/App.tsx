@@ -1,39 +1,45 @@
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Home } from './pages/Home';
 import { Architecture } from './pages/Architecture';
-
-// Placeholder components for future phases
-const Placeholder = ({ title }: { title: string }) => (
-  <div className="flex items-center justify-center h-full">
-    <h2 className="text-3xl text-slate-400 font-light">{title} - Coming Soon</h2>
-  </div>
-);
+import { Tokenization } from './pages/Tokenization';
+import { Embedding } from './pages/Embedding';
+import { PositionalEncoding } from './pages/PositionalEncoding';
+import { QKV } from './pages/QKV';
+import { SelfAttention } from './pages/SelfAttention';
+import { MultiHeadAttention } from './pages/MultiHeadAttention';
+import { AddNorm } from './pages/AddNorm';
+import { FeedForward } from './pages/FeedForward';
+import { Encoder } from './pages/Encoder';
+import { Decoder } from './pages/Decoder';
+import { Softmax } from './pages/Softmax';
+import { Prediction } from './pages/Prediction';
+import { About } from './pages/About';
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="architecture" element={<Architecture />} />
-          <Route path="tokenization" element={<Placeholder title="Tokenization" />} />
-          <Route path="embedding" element={<Placeholder title="Embedding" />} />
-          <Route path="positional-encoding" element={<Placeholder title="Positional Encoding" />} />
-          <Route path="qkv" element={<Placeholder title="Query / Key / Value" />} />
-          <Route path="self-attention" element={<Placeholder title="Self Attention" />} />
-          <Route path="multi-head-attention" element={<Placeholder title="Multi Head Attention" />} />
-          <Route path="add-norm" element={<Placeholder title="Add & LayerNorm" />} />
-          <Route path="feed-forward" element={<Placeholder title="Feed Forward" />} />
-          <Route path="encoder" element={<Placeholder title="Encoder Stack" />} />
-          <Route path="decoder" element={<Placeholder title="Decoder" />} />
-          <Route path="softmax" element={<Placeholder title="Softmax" />} />
-          <Route path="prediction" element={<Placeholder title="Next Token Prediction" />} />
-          <Route path="about" element={<Placeholder title="About" />} />
+          <Route path="tokenization" element={<Tokenization />} />
+          <Route path="embedding" element={<Embedding />} />
+          <Route path="positional-encoding" element={<PositionalEncoding />} />
+          <Route path="qkv" element={<QKV />} />
+          <Route path="self-attention" element={<SelfAttention />} />
+          <Route path="multi-head-attention" element={<MultiHeadAttention />} />
+          <Route path="add-norm" element={<AddNorm />} />
+          <Route path="feed-forward" element={<FeedForward />} />
+          <Route path="encoder" element={<Encoder />} />
+          <Route path="decoder" element={<Decoder />} />
+          <Route path="softmax" element={<Softmax />} />
+          <Route path="prediction" element={<Prediction />} />
+          <Route path="about" element={<About />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
