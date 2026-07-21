@@ -4,12 +4,11 @@ import { ModuleLayout } from '../components/ModuleLayout';
 
 export const QKV = () => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [step, setStep] = useState(0); // 0: Token, 1: Splitting, 2: QKV
+  const [step, setStep] = useState(0); 
   const [speed, setSpeed] = useState(1);
-  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
 
   const handlePlayPause = () => {
-    if (!isPlaying && step === 2) {
+    if (!isPlaying && step === 6) {
       handleReplay();
     } else {
       setIsPlaying(!isPlaying);
@@ -25,11 +24,8 @@ export const QKV = () => {
   useEffect(() => {
     if (!isPlaying) return;
 
-    if (step === 0) {
-      const timer = setTimeout(() => setStep(1), 800 / speed);
-      return () => clearTimeout(timer);
-    } else if (step === 1) {
-      const timer = setTimeout(() => setStep(2), 1200 / speed);
+    if (step < 6) {
+      const timer = setTimeout(() => setStep(s => s + 1), 1500 / speed);
       return () => clearTimeout(timer);
     } else {
       setIsPlaying(false);
@@ -38,163 +34,195 @@ export const QKV = () => {
 
   const explanation = (
     <>
-      <p><strong>The Attention Setup</strong></p>
-      <p>Before a Transformer can figure out which words are related to each other, it projects each word's embedding into three distinct vectors: <strong>Query</strong>, <strong>Key</strong>, and <strong>Value</strong>.</p>
+      <p><strong>Scaled Dot-Product Attention</strong></p>
+      <p>Before a Transformer can figure out which words are related to each other, it projects each word's embedding into three distinct vectors: <strong>Query (Q)</strong>, <strong>Key (K)</strong>, and <strong>Value (V)</strong>.</p>
       <p className="mt-4">Think of this like a database search. You use a <em>Query</em> to search against <em>Keys</em>, and when you find a match, you extract the <em>Value</em>.</p>
+      <p className="mt-4">The diagram here shows the complete math pipeline:</p>
+      <ol className="list-decimal pl-5 mt-2 space-y-1 text-sm">
+        <li><strong>MatMul:</strong> Calculate raw compatibility scores between words (Q × K<sup>T</sup>).</li>
+        <li><strong>Scale:</strong> Divide by √d<sub>k</sub> so gradients don't explode.</li>
+        <li><strong>Mask:</strong> (Optional) Hide future words during text generation.</li>
+        <li><strong>SoftMax:</strong> Convert scores into probabilities that sum to 1.</li>
+        <li><strong>MatMul:</strong> Multiply the probabilities by the Values ($V$) to get the final context vector.</li>
+      </ol>
     </>
   );
 
   const conceptSummary = (
-    <ul className="list-disc pl-5 space-y-3">
-      <li>Each input embedding is multiplied by three learned weight matrices ($W_Q, W_K, W_V$).</li>
-      <li>This results in three smaller vectors for every single word.</li>
-      <li><strong>Q (Query):</strong> Used to score relevance against other words.</li>
-      <li><strong>K (Key):</strong> Represents the word's identity to other queries.</li>
-      <li><strong>V (Value):</strong> The actual underlying meaning that gets passed forward.</li>
+    <ul className="list-disc pl-5 space-y-2">
+      <li><strong>Q:</strong> "What am I looking for?"</li>
+      <li><strong>K:</strong> "What do I represent?"</li>
+      <li><strong>V:</strong> "What information do I actually carry?"</li>
+      <li>The output is a weighted sum of the Values, where the weight assigned to each Value is computed by a compatibility function of the Query with the corresponding Key.</li>
     </ul>
   );
 
+  // Reusable component for the architecture blocks
+  const ArchBlock = ({ title, colorClass, x, y, width = "w-28", isActive = false }: { title: string, colorClass: string, x: number, y: number, width?: string, isActive?: boolean }) => (
+    <div 
+      className={`absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center border-2 border-slate-900 rounded-md px-2 py-2 text-center text-sm font-semibold shadow-md text-slate-900 z-20 ${colorClass} ${width} transition-all duration-300 ${isActive ? 'ring-4 ring-primary-400 scale-105' : ''}`}
+      style={{ left: `${x}px`, top: `${y}px` }}
+    >
+      {title}
+    </div>
+  );
+
   const interactiveArea = (
-    <div className="flex flex-col items-center justify-center w-full h-full min-h-[400px]">
-      <div className="relative flex flex-col items-center w-full max-w-2xl mt-12">
+    <div className="flex flex-col items-center justify-center w-full h-full min-h-[550px]">
+      
+      <div className="relative w-[500px] h-[500px] bg-white rounded-2xl shadow-2xl overflow-visible text-slate-800 flex-shrink-0 mt-8 font-sans">
         
-        {/* Step 0 & 1: The Base Token Embedding */}
+        {/* Title */}
+        <div className="absolute top-4 left-0 w-full text-center">
+          <h2 className="text-xl font-bold border-b-2 border-red-600 inline-block pb-1 text-slate-800">Scaled Dot-Product Attention</h2>
+        </div>
+
+        {/* ================= SVG ARROWS ================= */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#1e293b" />
+            </marker>
+          </defs>
+
+          {/* Q and K to Bottom MatMul */}
+          <path d="M 120 460 L 120 410" stroke="#1e293b" strokeWidth="2" markerEnd="url(#arrowhead)" />
+          <path d="M 180 460 L 180 410" stroke="#1e293b" strokeWidth="2" markerEnd="url(#arrowhead)" />
+          
+          {/* Main vertical spine (MatMul -> Scale -> Mask -> Softmax -> MatMul) */}
+          <path d="M 150 370 L 150 330" stroke="#1e293b" strokeWidth="2" markerEnd="url(#arrowhead)" />
+          <path d="M 150 290 L 150 250" stroke="#1e293b" strokeWidth="2" markerEnd="url(#arrowhead)" />
+          <path d="M 150 210 L 150 170" stroke="#1e293b" strokeWidth="2" markerEnd="url(#arrowhead)" />
+          <path d="M 150 130 L 150 100" stroke="#1e293b" strokeWidth="2" markerEnd="url(#arrowhead)" />
+          
+          {/* V to Top MatMul */}
+          <path d="M 280 460 L 280 100" stroke="#1e293b" strokeWidth="2" markerEnd="url(#arrowhead)" />
+
+          {/* Output from Top MatMul */}
+          <path d="M 215 60 L 215 30" stroke="#1e293b" strokeWidth="2" markerEnd="url(#arrowhead)" />
+
+          {/* ======== ANIMATED DATA DOTS ======== */}
+          {/* Q & K flowing */}
+          {(step === 1) && (
+            <>
+              <motion.circle r="6" fill="#8b5cf6" animate={{ offsetDistance: ["0%", "100%"] }} transition={{ duration: 1 / speed, ease: "linear" }} style={{ offsetPath: "path('M 120 460 L 120 410')" }} />
+              <motion.circle r="6" fill="#8b5cf6" animate={{ offsetDistance: ["0%", "100%"] }} transition={{ duration: 1 / speed, ease: "linear" }} style={{ offsetPath: "path('M 180 460 L 180 410')" }} />
+            </>
+          )}
+
+          {/* Post-MatMul to Scale */}
+          {(step === 2) && (
+            <motion.circle r="6" fill="#8b5cf6" animate={{ offsetDistance: ["0%", "100%"] }} transition={{ duration: 1 / speed, ease: "linear" }} style={{ offsetPath: "path('M 150 370 L 150 330')" }} />
+          )}
+
+          {/* Scale to Mask */}
+          {(step === 3) && (
+            <motion.circle r="6" fill="#8b5cf6" animate={{ offsetDistance: ["0%", "100%"] }} transition={{ duration: 1 / speed, ease: "linear" }} style={{ offsetPath: "path('M 150 290 L 150 250')" }} />
+          )}
+
+          {/* Mask to Softmax */}
+          {(step === 4) && (
+            <motion.circle r="6" fill="#8b5cf6" animate={{ offsetDistance: ["0%", "100%"] }} transition={{ duration: 1 / speed, ease: "linear" }} style={{ offsetPath: "path('M 150 210 L 150 170')" }} />
+          )}
+
+          {/* Softmax to Top MatMul AND V to Top MatMul */}
+          {(step === 5) && (
+            <>
+              <motion.circle r="6" fill="#8b5cf6" animate={{ offsetDistance: ["0%", "100%"] }} transition={{ duration: 1 / speed, ease: "linear" }} style={{ offsetPath: "path('M 150 130 L 150 100')" }} />
+              <motion.circle r="6" fill="#ec4899" animate={{ offsetDistance: ["0%", "100%"] }} transition={{ duration: 1 / speed, ease: "linear" }} style={{ offsetPath: "path('M 280 460 L 280 100')" }} />
+            </>
+          )}
+
+          {/* Final Output */}
+          {(step === 6) && (
+            <motion.circle r="6" fill="#10b981" animate={{ offsetDistance: ["0%", "100%"] }} transition={{ duration: 1 / speed, ease: "linear" }} style={{ offsetPath: "path('M 215 60 L 215 30')" }} />
+          )}
+        </svg>
+
+        {/* ================= BLOCKS ================= */}
+        
+        {/* Top MatMul (Takes from Softmax and V) */}
+        <ArchBlock title="MatMul" colorClass="bg-[#c4b5fd]" x={215} y={80} width="w-40" isActive={step === 5 || step === 6} />
+        
+        {/* SoftMax */}
+        <ArchBlock title="SoftMax" colorClass="bg-[#bbf7d0]" x={150} y={150} isActive={step === 4} />
+        
+        {/* Mask */}
+        <ArchBlock title="Mask (opt.)" colorClass="bg-[#fbcfe8]" x={150} y={230} isActive={step === 3} />
+        
+        {/* Scale */}
+        <ArchBlock title="Scale" colorClass="bg-[#fef08a]" x={150} y={310} width="w-24" isActive={step === 2} />
+        
+        {/* Bottom MatMul (Takes from Q and K) */}
+        <ArchBlock title="MatMul" colorClass="bg-[#c4b5fd]" x={150} y={390} isActive={step === 1} />
+
+        {/* ================= INPUTS ================= */}
+        <div className={`absolute left-[120px] top-[470px] -translate-x-1/2 font-medium text-lg transition-colors ${step === 1 ? 'text-primary-500 font-bold' : 'text-slate-800'}`}>Q</div>
+        <div className={`absolute left-[180px] top-[470px] -translate-x-1/2 font-medium text-lg transition-colors ${step === 1 ? 'text-primary-500 font-bold' : 'text-slate-800'}`}>K</div>
+        <div className={`absolute left-[280px] top-[470px] -translate-x-1/2 font-medium text-lg transition-colors ${step === 5 ? 'text-pink-500 font-bold' : 'text-slate-800'}`}>V</div>
+
+        {/* ================= POP-OUT INFORMATION CARDS ================= */}
         <AnimatePresence>
-          {(step === 0 || step === 1) && (
+          {step === 1 && (
             <motion.div
-              initial={{ y: -50, opacity: 0 }}
-              animate={{ 
-                y: step === 1 ? -20 : 0, 
-                opacity: step === 1 ? 0 : 1,
-                scale: step === 1 ? 1.2 : 1
-              }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8 / speed }}
-              className="absolute top-0 bg-primary-600/20 border border-primary-500/50 text-primary-300 px-8 py-4 rounded-xl font-mono text-xl shadow-[0_0_20px_-5px_rgba(139,92,246,0.3)] z-10"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="absolute left-[240px] top-[370px] bg-slate-800 text-white p-3 rounded-lg shadow-xl border border-slate-700 w-56 z-30"
             >
-              [Token Embedding]
+              <div className="text-xs text-slate-400 mb-1">Step 1: Raw Scores</div>
+              <div className="text-sm font-mono tracking-wider">Q × K<sup>T</sup></div>
+              <div className="text-xs mt-1 text-slate-300">Computes the dot product to see how much each query relates to each key.</div>
             </motion.div>
           )}
-        </AnimatePresence>
 
-        {/* Transforming Lines */}
-        {step >= 1 && (
-          <div className="absolute top-12 w-full flex justify-center gap-[150px] z-0">
-            <motion.div 
-              initial={{ height: 0, opacity: 0, rotate: 25, transformOrigin: 'top center' }}
-              animate={{ height: 120, opacity: 1 }}
-              transition={{ duration: 1 / speed }}
-              className="w-1 bg-gradient-to-b from-primary-500 to-red-500 -ml-[150px]"
-            />
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 120, opacity: 1 }}
-              transition={{ duration: 1 / speed }}
-              className="w-1 bg-gradient-to-b from-primary-500 to-green-500 absolute"
-            />
-            <motion.div 
-              initial={{ height: 0, opacity: 0, rotate: -25, transformOrigin: 'top center' }}
-              animate={{ height: 120, opacity: 1 }}
-              transition={{ duration: 1 / speed }}
-              className="w-1 bg-gradient-to-b from-primary-500 to-blue-500 ml-[150px]"
-            />
-          </div>
-        )}
-
-        {/* Step 2: Q, K, V */}
-        <AnimatePresence>
           {step === 2 && (
-            <div className="absolute top-[130px] flex justify-center gap-12 w-full">
-              
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 / speed }}
-                className="relative"
-                onMouseEnter={() => setHoveredNode('query')}
-                onMouseLeave={() => setHoveredNode(null)}
-              >
-                <div className="bg-red-600/20 border border-red-500/50 text-red-300 px-6 py-3 rounded-xl font-bold cursor-pointer hover:bg-red-600/30 transition-colors text-center w-32 shadow-[0_0_20px_-5px_rgba(239,68,68,0.4)]">
-                  Query (Q)
-                </div>
-                <AnimatePresence>
-                  {hoveredNode === 'query' && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      className="absolute top-16 left-1/2 -translate-x-1/2 w-48 bg-slate-800 border border-slate-700 p-3 rounded-lg text-sm text-slate-300 text-center shadow-xl z-20"
-                    >
-                      "What am I looking for?"
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 / speed }}
-                className="relative"
-                onMouseEnter={() => setHoveredNode('key')}
-                onMouseLeave={() => setHoveredNode(null)}
-              >
-                <div className="bg-green-600/20 border border-green-500/50 text-green-300 px-6 py-3 rounded-xl font-bold cursor-pointer hover:bg-green-600/30 transition-colors text-center w-32 shadow-[0_0_20px_-5px_rgba(34,197,94,0.4)]">
-                  Key (K)
-                </div>
-                <AnimatePresence>
-                  {hoveredNode === 'key' && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      className="absolute top-16 left-1/2 -translate-x-1/2 w-48 bg-slate-800 border border-slate-700 p-3 rounded-lg text-sm text-slate-300 text-center shadow-xl z-20"
-                    >
-                      "What do I represent?"
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 / speed }}
-                className="relative"
-                onMouseEnter={() => setHoveredNode('value')}
-                onMouseLeave={() => setHoveredNode(null)}
-              >
-                <div className="bg-blue-600/20 border border-blue-500/50 text-blue-300 px-6 py-3 rounded-xl font-bold cursor-pointer hover:bg-blue-600/30 transition-colors text-center w-32 shadow-[0_0_20px_-5px_rgba(59,130,246,0.4)]">
-                  Value (V)
-                </div>
-                <AnimatePresence>
-                  {hoveredNode === 'value' && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      className="absolute top-16 left-1/2 -translate-x-1/2 w-48 bg-slate-800 border border-slate-700 p-3 rounded-lg text-sm text-slate-300 text-center shadow-xl z-20"
-                    >
-                      "What information do I carry?"
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-
-            </div>
-          )}
-        </AnimatePresence>
-        
-        {/* Instruction overlay */}
-        <AnimatePresence>
-          {step === 2 && !hoveredNode && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
-              className="absolute top-[220px] text-slate-400 text-sm italic animate-pulse"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="absolute left-[240px] top-[290px] bg-slate-800 text-white p-3 rounded-lg shadow-xl border border-slate-700 w-56 z-30"
             >
-              Hover over the blocks to see what they mean!
+              <div className="text-xs text-slate-400 mb-1">Step 2: Scaling</div>
+              <div className="text-sm font-mono tracking-wider">(Q × K<sup>T</sup>) / √d<sub>k</sub></div>
+              <div className="text-xs mt-1 text-slate-300">Dividing by the square root of the dimension prevents values from getting too large.</div>
+            </motion.div>
+          )}
+
+          {step === 3 && (
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="absolute left-[240px] top-[210px] bg-slate-800 text-white p-3 rounded-lg shadow-xl border border-slate-700 w-56 z-30"
+            >
+              <div className="text-xs text-slate-400 mb-1">Step 3: Masking (Optional)</div>
+              <div className="text-xs mt-1 text-slate-300">Sets future token scores to -∞ so they become 0 after Softmax. Used in Decoder.</div>
+            </motion.div>
+          )}
+
+          {step === 4 && (
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="absolute left-[240px] top-[130px] bg-slate-800 text-white p-3 rounded-lg shadow-xl border border-slate-700 w-56 z-30"
+            >
+              <div className="text-xs text-slate-400 mb-1">Step 4: Attention Weights</div>
+              <div className="text-sm font-mono tracking-wider">softmax( (Q × K<sup>T</sup>) / √d<sub>k</sub> )</div>
+              <div className="text-xs mt-1 text-slate-300">Converts scores into a probability distribution (values between 0 and 1).</div>
+            </motion.div>
+          )}
+
+          {step >= 5 && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="absolute right-[10px] top-[50px] bg-slate-800 text-white p-3 rounded-lg shadow-xl border border-slate-700 w-56 z-30"
+            >
+              <div className="text-xs text-slate-400 mb-1">Step 5: Context Vector</div>
+              <div className="text-sm font-mono tracking-wider">Weights × V</div>
+              <div className="text-xs mt-1 text-green-300 font-medium">Final Output! Each token now contains context from relevant tokens.</div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -205,9 +233,9 @@ export const QKV = () => {
 
   return (
     <ModuleLayout
-      title="Query, Key, Value"
+      title="Scaled Dot-Product Attention"
       explanation={explanation}
-      businessInsight="Helps AI identify the most important words in a customer review or support ticket."
+      businessInsight="This is the core mathematical engine of a Transformer. It allows the model to instantly pull relevant information from anywhere in the document."
       conceptSummary={conceptSummary}
       interactiveArea={interactiveArea}
       prevModule="/positional-encoding"

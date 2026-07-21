@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Home } from './pages/Home';
 import { Architecture } from './pages/Architecture';
+import { Legends } from './pages/Legends';
 import { Tokenization } from './pages/Tokenization';
 import { Embedding } from './pages/Embedding';
 import { PositionalEncoding } from './pages/PositionalEncoding';
@@ -24,6 +25,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="architecture" element={<Architecture />} />
+          <Route path="legends" element={<Legends />} />
           <Route path="tokenization" element={<Tokenization />} />
           <Route path="embedding" element={<Embedding />} />
           <Route path="positional-encoding" element={<PositionalEncoding />} />

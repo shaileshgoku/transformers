@@ -15,12 +15,15 @@ import {
   Brain, 
   BarChart2, 
   Dices,
-  Info 
+  Info,
+  X,
+  BookOpen
 } from 'lucide-react';
 
 const navItems = [
   { path: '/', label: 'Home', icon: Home },
   { path: '/architecture', label: 'Architecture Overview', icon: LayoutTemplate },
+  { path: '/legends', label: 'Architecture Legends', icon: BookOpen },
   { path: '/tokenization', label: 'Tokenization', icon: FileText },
   { path: '/embedding', label: 'Embedding', icon: Type },
   { path: '/positional-encoding', label: 'Positional Encoding', icon: MapPin },
@@ -36,14 +39,22 @@ const navItems = [
   { path: '/about', label: 'About', icon: Info },
 ];
 
-export const Sidebar = () => {
+export const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: boolean) => void }) => {
+  if (!isOpen) return null;
+
   return (
-    <aside className="w-72 border-r border-slate-700/50 bg-slate-900/50 backdrop-blur-xl flex flex-col h-screen sticky top-0 overflow-y-auto">
-      <div className="p-6">
+    <aside className="w-72 border-r border-slate-700/50 bg-slate-900/50 backdrop-blur-xl flex flex-col h-screen sticky top-0 overflow-y-auto shrink-0 transition-all">
+      <div className="p-6 flex items-center justify-between">
         <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 flex items-center gap-2">
           <Brain className="w-6 h-6 text-purple-500" />
           Transformer
         </h1>
+        <button 
+          onClick={() => setIsOpen(false)}
+          className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
       
       <nav className="flex-1 px-4 pb-6 space-y-1">
