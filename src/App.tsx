@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Home } from './pages/Home';
+import { Architecture } from './pages/Architecture';
 
 // Placeholder components for future phases
 const Placeholder = ({ title }: { title: string }) => (
@@ -16,7 +17,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path="architecture" element={<Placeholder title="Architecture Overview" />} />
+          <Route path="architecture" element={<Architecture />} />
           <Route path="tokenization" element={<Placeholder title="Tokenization" />} />
           <Route path="embedding" element={<Placeholder title="Embedding" />} />
           <Route path="positional-encoding" element={<Placeholder title="Positional Encoding" />} />
